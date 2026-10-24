@@ -1,0 +1,71 @@
+name: Daily News Digest
+
+on:
+  schedule:
+    # 13:00 UTC == 08:00 America/New_York during EST; adjust for DST / your tz.
+    - cron: '0 13 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: daily-news
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      # Restore the dedup store from GitHub Actions cache. The key is unique
+      # per run so each run also saves a fresh snapshot; restore-keys falls
+      # back to the most recent history-* entry when the exact key misses
+      # (which is always, by design).
+      - name: Restore history cache
+        id: restore-history
+        uses: actions/cache/restore@v4
+        with:
+          path: history.json
+          key: history-${{ github.run_id }}
+          restore-keys: |
+            history-
+
+      - name: Run aggregator
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          BREVO_SMTP_LOGIN: ${{ secrets.BREVO_SMTP_LOGIN }}
+          BREVO_SMTP_KEY: ${{ secrets.BREVO_SMTP_KEY }}
+          SENDER_EMAIL: ${{ secrets.SENDER_EMAIL }}
+          RECIPIENT_EMAIL: ${{ secrets.RECIPIENT_EMAIL }}
+        run: python aggregator.py
+
+      # Save even on failure so we don't lose dedup state when the Python
+      # step errors after already updating history.json.
+      - name: Save history cache
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: history.json
+          key: history-${{ github.run_id }}
+
+      - name: Commit digest archive
+        run: |
+          git config user.name  "news-bot"
+          git config user.email "news-bot@users.noreply.github.com"
+          git add digests/
+          if git diff --cached --quiet; then
+            echo "No archive changes to commit."
+          else
+            git commit -m "digest: $(date -u +%Y-%m-%d)"
+            git push
+          fi

@@ -1,0 +1,16 @@
+# Daily Brief — {{ date }}
+
+{{ total_items }} item{{ '' if total_items == 1 else 's' }} across {{ categories|length }} topic{{ '' if categories|length == 1 else 's' }}.
+
+{% for category in categories %}
+## {{ category.name }}
+
+{% for item in category.items %}
+### [{{ item.article.title }}]({{ item.article.link }})
+
+*{{ item.article.source }} · {{ item.article.published.strftime('%Y-%m-%d') }}*
+
+{% if item.why_it_matters %}**Why it matters:** {{ item.why_it_matters }}{% endif %}
+
+{% endfor %}
+{% endfor %}

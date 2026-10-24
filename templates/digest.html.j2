@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Daily Brief — {{ date }}</title>
+</head>
+<body style="margin:0;padding:0;background:#f5f5f7;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;color:#1d1d1f;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f5f5f7;padding:24px 0;">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="640" cellpadding="0" cellspacing="0" style="max-width:640px;width:100%;background:#ffffff;border-radius:12px;padding:32px;box-shadow:0 1px 3px rgba(0,0,0,0.05);">
+          <tr>
+            <td>
+              <h1 style="margin:0 0 4px 0;font-size:24px;line-height:1.3;">Daily Brief</h1>
+              <p style="margin:0 0 24px 0;color:#6e6e73;font-size:14px;">
+                {{ date }} · {{ total_items }} item{{ '' if total_items == 1 else 's' }} across {{ categories|length }} topic{{ '' if categories|length == 1 else 's' }}
+              </p>
+              {% for category in categories %}
+              <h2 style="margin:24px 0 12px 0;font-size:18px;border-bottom:1px solid #e5e5ea;padding-bottom:6px;">{{ category.name }}</h2>
+              {% for item in category.items %}
+              <div style="margin:0 0 20px 0;">
+                <a href="{{ item.article.link }}" style="color:#0066cc;text-decoration:none;font-size:16px;font-weight:600;">{{ item.article.title }}</a>
+                <div style="color:#6e6e73;font-size:12px;margin:2px 0 6px 0;">{{ item.article.source }} · {{ item.article.published.strftime('%Y-%m-%d') }}</div>
+                {% if item.why_it_matters %}
+                <div style="font-size:14px;line-height:1.5;color:#1d1d1f;"><strong>Why it matters:</strong> {{ item.why_it_matters }}</div>
+                {% endif %}
+              </div>
+              {% endfor %}
+              {% endfor %}
+              <p style="margin:32px 0 0 0;color:#a1a1a6;font-size:12px;text-align:center;">
+                Curated by your aggregator bot. Archive in the repo under <code>digests/</code>.
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
