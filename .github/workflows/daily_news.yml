@@ -1,5 +1,6 @@
 name: Daily News Digest
 
+# Registered for manual runs and the daily cron. Do not add a push trigger.
 on:
   schedule:
     # 13:00 UTC == 08:00 America/New_York during EST; adjust for DST / your tz.
